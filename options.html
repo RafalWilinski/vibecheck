@@ -24,7 +24,7 @@
 </head>
 <body>
   <h1>Vibe Check for X</h1>
-  <p class="sub">Your draft is sent to TypeSafe's Jev model with the rubrics below. Nothing else is stored or sent anywhere.</p>
+  <p class="sub">Your draft and reply/quote context are sent to TypeSafe's Jev model with the rubrics below. If media description is enabled and an OpenAI key is configured, images/video frames are sent to OpenAI and their descriptions to Jev. Settings and API keys are stored in your browser's extension sync storage.</p>
 
   <label for="apiKey">TypeSafe API key</label>
   <div class="row">
@@ -32,7 +32,7 @@
     <button class="ghost" id="reveal" type="button">Show</button>
     <button class="ghost" id="test" type="button">Test key</button>
   </div>
-  <div class="hint">Get one at <a href="https://console.typesafe.ai" target="_blank" rel="noreferrer">console.typesafe.ai</a>. Stored in Chrome sync storage; only used from the extension's background worker.</div>
+  <div class="hint">Get one at <a href="https://console.typesafe.ai" target="_blank" rel="noreferrer">console.typesafe.ai</a>. Stored in your browser's extension sync storage; only used from the extension's background.</div>
 
   <h2 style="font-size:16px;margin:28px 0 0">Images &amp; video</h2>
   <p class="hint" style="margin-top:4px">Jev is text-only. With an OpenAI key, attached images (and the first frame of videos/GIFs) are described by a vision model and the description is passed to Jev as <code>media</code>. Images on the tweet you're replying to are described too.</p>

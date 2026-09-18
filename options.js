@@ -1,8 +1,9 @@
+const extension = globalThis.browser ?? globalThis.chrome;
 const $ = (id) => document.getElementById(id);
 const msg = (text, cls = "") => { $("msg").textContent = text; $("msg").className = cls; };
 
 async function load() {
-  const s = await chrome.storage.sync.get(["apiKey", "rubricsJson", "autoAnalyze", "debounceMs", "openaiKey", "visionModel", "describeMedia"]);
+  const s = await extension.storage.sync.get(["apiKey", "rubricsJson", "autoAnalyze", "debounceMs", "openaiKey", "visionModel", "describeMedia"]);
   $("apiKey").value = s.apiKey || "";
   $("openaiKey").value = s.openaiKey || "";
   $("visionModel").value = s.visionModel || "gpt-4o-mini";
@@ -35,7 +36,7 @@ $("save").addEventListener("click", async () => {
   try {
     const rubrics = validateRubrics($("rubrics").value);
     const isDefault = JSON.stringify(rubrics) === JSON.stringify(VIBECHECK_DEFAULT_RUBRICS);
-    await chrome.storage.sync.set({
+    await extension.storage.sync.set({
       apiKey: $("apiKey").value.trim(),
       openaiKey: $("openaiKey").value.trim(),
       visionModel: $("visionModel").value.trim() || "gpt-4o-mini",

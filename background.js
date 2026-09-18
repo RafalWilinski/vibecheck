@@ -1,7 +1,10 @@
-// Service worker: holds the API keys and calls TypeSafe / OpenAI from here so the
+// Background: holds the API keys and calls TypeSafe / OpenAI from here so the
 // keys never touch the x.com page context and CORS is a non-issue.
 
-importScripts("rubrics.js");
+// Firefox loads rubrics through background.scripts instead of a service worker.
+if (typeof importScripts === "function") importScripts("rubrics.js");
+
+const extension = globalThis.browser ?? globalThis.chrome;
 
 const TS_URL = "https://api.typesafe.ai/v1/systemone";
 const TS_MODEL = "jev-latest";
@@ -16,12 +19,12 @@ Cover, in under 130 words:
 - Anything sensitive: NSFW, gore, identifiable private people, personal data (addresses, plates, private messages), watermarks or copyright, political symbols.
 Do not speculate about the caption or evaluate the post; only describe the media.`;
 
-chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
-chrome.runtime.onInstalled.addListener(({ reason }) => {
-  if (reason === "install") chrome.runtime.openOptionsPage();
+extension.action.onClicked.addListener(() => extension.runtime.openOptionsPage());
+extension.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === "install") extension.runtime.openOptionsPage();
 });
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+extension.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   switch (msg?.type) {
     case "vibecheck:analyze":
       analyze(msg.state)
@@ -37,7 +40,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       getSettings().then((s) => sendResponse({ ok: true, settings: { describeMedia: s.describeMedia, hasOpenAI: !!s.openaiKey } }));
       return true;
     case "vibecheck:openOptions":
-      chrome.runtime.openOptionsPage();
+      extension.runtime.openOptionsPage();
       sendResponse({ ok: true });
       return false;
   }
@@ -45,7 +48,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 async function getSettings() {
-  const s = await chrome.storage.sync.get([
+  const s = await extension.storage.sync.get([
     "apiKey", "rubricsJson", "autoAnalyze", "debounceMs", "openaiKey", "visionModel", "describeMedia",
   ]);
   return {
