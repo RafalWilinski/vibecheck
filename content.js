@@ -9,6 +9,7 @@
   // "...RichTextInputContainer" (a wrapper); only accept real role=textbox nodes.
   const TEXTBOX_SEL = '[data-testid^="tweetTextarea_"][role="textbox"], [data-testid^="tweetTextarea_"]:not([data-testid$="_label"]) [role="textbox"]';
   const TOOLBAR_SEL = '[data-testid="toolBar"]';
+  const INLINE_REPLY_SEL = '[data-testid="inline_reply_offscreen"], [data-testid="inline_reply"]';
   const POST_BTN_SEL = '[data-testid="tweetButton"], [data-testid="tweetButtonInline"]';
   const REPLY_CTX_SEL = '[data-testid="tweetText"]';
   const ATTACH_SEL = '[data-testid="attachments"]';
@@ -53,15 +54,14 @@
     return out;
   }
 
-  // The composer "host" is the element we hang the panel off: the toolbar row
-  // (which holds media/emoji buttons + Post) if we can find it, else the textbox.
   function findComposerHost(textbox) {
     const dialog = textbox.closest('[role="dialog"]');
-    const scope = dialog || document;
+    const inlineReply = textbox.closest(INLINE_REPLY_SEL);
+    const scope = dialog || inlineReply || document;
     const toolbars = [...scope.querySelectorAll(TOOLBAR_SEL)];
     // Pick the toolbar closest *after* the textbox in DOM order.
     const after = toolbars.find((tb) => textbox.compareDocumentPosition(tb) & Node.DOCUMENT_POSITION_FOLLOWING);
-    return after || textbox;
+    return after || inlineReply || textbox;
   }
 
   function getDraftParts() {
@@ -289,9 +289,14 @@
     ]);
     panel.append(header, el("div", { class: "vc-body", "data-role": "body" }));
 
-    // Insert right after the toolbar row (or after the textbox's block).
-    const anchor = host.matches(TOOLBAR_SEL) ? host.parentElement || host : host;
-    anchor.insertAdjacentElement("afterend", panel);
+    if (host.matches(INLINE_REPLY_SEL)) {
+      // Draft.js's editor height excludes siblings of its contenteditable.
+      panel.classList.add("vc-inline-reply");
+      host.append(panel);
+    } else {
+      const anchor = host.matches(TOOLBAR_SEL) ? host.parentElement || host : host;
+      anchor.insertAdjacentElement("afterend", panel);
+    }
     currentHost = host;
     if (localStorage.getItem("vibecheck:collapsed") === "1") panel.classList.add("vc-collapsed");
     return panel;
