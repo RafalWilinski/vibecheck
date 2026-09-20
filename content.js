@@ -4,6 +4,7 @@
   if (window.__vibecheckLoaded) return;
   window.__vibecheckLoaded = true;
 
+  const extension = globalThis.browser ?? globalThis.chrome;
   const PANEL_ID = "vibecheck-panel";
   // Note: X also has data-testid="tweetTextarea_0_label" (the placeholder) and
   // "...RichTextInputContainer" (a wrapper); only accept real role=textbox nodes.
@@ -27,12 +28,12 @@
   let inFlight = false;
   let currentHost = null; // the composer root we attached to
 
-  chrome.storage.sync.get(["autoAnalyze", "debounceMs", "describeMedia"]).then((s) => {
+  extension.storage.sync.get(["autoAnalyze", "debounceMs", "describeMedia"]).then((s) => {
     if (typeof s.autoAnalyze === "boolean") settings.autoAnalyze = s.autoAnalyze;
     if (Number(s.debounceMs) > 0) settings.debounceMs = Number(s.debounceMs);
     if (typeof s.describeMedia === "boolean") settings.describeMedia = s.describeMedia;
   });
-  chrome.storage.onChanged.addListener((changes) => {
+  extension.storage.onChanged.addListener((changes) => {
     if (changes.autoAnalyze) settings.autoAnalyze = changes.autoAnalyze.newValue;
     if (changes.debounceMs) settings.debounceMs = Number(changes.debounceMs.newValue) || 1200;
     if (changes.describeMedia) settings.describeMedia = changes.describeMedia.newValue;
@@ -173,7 +174,7 @@
     } else {
       payload.dataUrl = item.kind === "video" ? await videoFrameToDataUrl(item.el) : await imageToDataUrl(item.src);
     }
-    const res = await chrome.runtime.sendMessage(payload);
+    const res = await extension.runtime.sendMessage(payload);
     if (!res?.ok) throw new Error(res?.error || "describe failed");
     return { description: res.description };
   }
@@ -284,7 +285,7 @@
       el("span", { class: "vc-sub", text: "by Jev" }),
       el("span", { class: "vc-status", "data-role": "status", text: "" }),
       el("button", { class: "vc-btn", type: "button", "data-role": "run", text: "Check", onclick: () => runAnalysis(true) }),
-      el("button", { class: "vc-icon", type: "button", title: "Settings", text: "⚙", onclick: () => chrome.runtime.sendMessage({ type: "vibecheck:openOptions" }) }),
+      el("button", { class: "vc-icon", type: "button", title: "Settings", text: "⚙", onclick: () => extension.runtime.sendMessage({ type: "vibecheck:openOptions" }) }),
       el("button", { class: "vc-icon", type: "button", title: "Collapse", "data-role": "toggle", text: "▾", onclick: togglePanel }),
     ]);
     panel.append(header, el("div", { class: "vc-body", "data-role": "body" }));
@@ -474,7 +475,7 @@
       if (!force && key === lastAnalyzedKey) { setStatus(""); return; }
 
       setStatus("thinking…", "vc-busy");
-      const res = await chrome.runtime.sendMessage({ type: "vibecheck:analyze", state });
+      const res = await extension.runtime.sendMessage({ type: "vibecheck:analyze", state });
       if (!res?.ok) {
         if (res?.error === "NO_API_KEY") {
           renderEmpty("Add your TypeSafe API key in settings (⚙) to enable vibe checks.");

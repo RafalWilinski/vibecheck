@@ -1,5 +1,18 @@
 {
   "manifest_version": 3,
+  "minimum_chrome_version": "121",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{4da3e3b2-df70-45be-9683-f71c81c84aa4}",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent", "personalCommunications"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
   "name": "Vibe Check for X (powered by Jev)",
   "version": "0.2.0",
   "description": "Runs your draft post (and attached images, via an OpenAI vision model) through TypeSafe's Jev model before you hit Post: virality, funniness, informativeness, insult level, cringe, regret risk and more.",
@@ -11,7 +24,8 @@
     "https://api.openai.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": ["rubrics.js", "background.js"]
   },
   "options_ui": {
     "page": "options.html",
